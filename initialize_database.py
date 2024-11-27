@@ -70,7 +70,7 @@ def initialize_database():
         );
         """)
 
-        populate_database()
+        populate_database(cursor, conn)
 
         conn.commit()
         conn.close()
@@ -80,13 +80,11 @@ def initialize_database():
 
 
     
-def populate_database():
+def populate_database(cursor, conn):
 
     # Populate tables with sample data
         cursor.executescript("""
-        INSERT INTO USERS (email, password) VALUES
-        ('user1@example.com', 'password123'),
-        ('user2@example.com', 'mypassword');
+        INSERT INTO USERS (email, password) VALUES ('admin@email.com', '123');
 
         INSERT INTO MOVIES (title, director, year, length, description) VALUES
         ('Inception', 'Christopher Nolan', 2010, 148, 'A mind-bending thriller.'),
@@ -96,3 +94,6 @@ def populate_database():
         ('Leonardo', 'DiCaprio', 'American', '1974-11-11'),
         ('Keanu', 'Reeves', 'Canadian', '1964-09-02');
         """)
+        
+        conn.commit()
+        
