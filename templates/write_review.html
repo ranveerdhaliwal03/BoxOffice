@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Write a Review</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            overflow-y: auto;
+            display: none; /* Hidden by default */
+            max-height: 200px;
+        }
+        table th, table td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+        table tbody tr {
+            cursor: pointer;
+        }
+        table tbody tr.selected {
+            background-color: #add8e6; /* Highlight color */
+        }
+        button {
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 16px;
+        }
+        .hidden {
+            display: none;
+        }
+        input[type="text"] {
+            width: 50px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Write a Review</h1>
+    <div>
+        <button id="movieButton">Review a Movie</button>
+        <button id="actorButton">Review an Actor</button>
+    </div>
+
+    <form method="POST" action="/write_review" id="reviewForm">
+        <div id="movieSection" class="hidden">
+            <h2>Select a Movie</h2>
+            <table id="movieTable">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Director</th>
+                        <th>Year</th>
+                        <th>Length</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody id="movieTableBody">
+                    <!-- Movie rows inserted dynamically -->
+                </tbody>
+            </table>
+        </div>
+
+        <div id="actorSection" class="hidden">
+            <h2>Select an Actor</h2>
+            <table id="actorTable">
+                <thead>
+                    <tr>
+                        <th>Full Name</th>
+                        <th>Nationality</th>
+                        <th>Birthday</th>
+                    </tr>
+                </thead>
+                <tbody id="actorTableBody">
+                    <!-- Actor rows inserted dynamically -->
+                </tbody>
+            </table>
+        </div>
+
+        <label>Rating (1-5): 
+            <input 
+                type="text" 
+                name="rating" 
+                id="ratingInput" 
+                required
+                pattern="[1-5]" 
+                title="Please enter a number between 1 and 5.">
+        </label><br>
+        <label>Review Date: <input type="date" name="reviewDate" required></label><br>
+        <input type="hidden" name="reviewType" id="reviewType">
+        <input type="hidden" name="selectedID" id="selectedID">
+        <button type="submit">Submit Review</button>
+    </form>
+
+    <a href="/">Back to Main Page</a>
+
+    <script>
+        const movieButton = document.getElementById('movieButton');
+        const actorButton = document.getElementById('actorButton');
+        const movieSection = document.getElementById('movieSection');
+        const actorSection = document.getElementById('actorSection');
+        const reviewType = document.getElementById('reviewType');
+        const selectedID = document.getElementById('selectedID');
+        const ratingInput = document.getElementById('ratingInput');
+
+        function fetchAndPopulate(url, tableBodyId, tableId) {
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById(tableBodyId);
+                    const table = document.getElementById(tableId);
+                    tableBody.innerHTML = ''; // Clear previous rows
+                    table.style.display = 'block'; // Show the table
+                    data.forEach(item => {
+                        const row = document.createElement('tr');
+                        Object.values(item).forEach(value => {
+                            const cell = document.createElement('td');
+                            cell.textContent = value;
+                            row.appendChild(cell);
+                        });
+                        row.dataset.id = item.id; // Store ID for submission
+                        tableBody.appendChild(row);
+
+                        // Add click event to select row
+                        row.addEventListener('click', () => {
+                            // Deselect all rows
+                            document.querySelectorAll(`#${tableBodyId} tr`).forEach(r => r.classList.remove('selected'));
+                            row.classList.add('selected');
+                            selectedID.value = row.dataset.id; // Set selected ID
+                        });
+                    });
+                });
+        }
+
+        movieButton.addEventListener('click', () => {
+            movieSection.classList.remove('hidden');
+            actorSection.classList.add('hidden');
+            reviewType.value = 'movie';
+            fetchAndPopulate('/api/movies', 'movieTableBody', 'movieTable');
+        });
+
+        actorButton.addEventListener('click', () => {
+            actorSection.classList.remove('hidden');
+            movieSection.classList.add('hidden');
+            reviewType.value = 'actor';
+            fetchAndPopulate('/api/actors', 'actorTableBody', 'actorTable');
+        });
+    </script>
+</body>
+</html>
