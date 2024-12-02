@@ -9,6 +9,23 @@
             font-family: Arial, sans-serif;
             margin: 20px;
         }
+        nav {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        nav a:hover {
+            background-color: #555;
+        }
         button {
             margin: 10px;
             padding: 10px;
@@ -20,10 +37,19 @@
     </style>
 </head>
 <body>
+    <!-- Navigation Menu -->
+    <nav>
+        <a href="/">Home</a>
+        <a href="/watchlist">My Watchlist</a>
+        <a href="/write_review">Write a Review</a>
+        <a href="/logout">Logout</a>
+    </nav>
+
     <h1>Box Office</h1>
     <button id="moviesButton">Show Movies</button>
     <button id="actorsButton">Show Actors</button>
     <div id="results"></div>
+
     <script>
         document.getElementById('moviesButton').addEventListener('click', () => {
             fetch('/movies')
