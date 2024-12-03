@@ -57,25 +57,36 @@ def logout():
     session.clear()
     return redirect('/login')
 
-# Route for viewing the user's watchlist
 @app.route('/watchlist')
 def watchlist():
     if 'user_id' not in session:
         return redirect('/login')  # If not logged in, redirect to login
-    
+
     user_id = session['user_id']
 
-    # Fetch the movies in the user's watchlist
     conn = sqlite3.connect('box_office.db')
     cursor = conn.cursor()
+
+    # Check if the user already has a watchlist
+    cursor.execute("SELECT watchlist_ID FROM WATCHLIST WHERE user_ID = ?", (user_id,))
+    watchlist = cursor.fetchone()
+
+    if not watchlist:
+        # If no watchlist exists, create one
+        cursor.execute("INSERT INTO WATCHLIST (user_ID) VALUES (?)", (user_id,))
+        conn.commit()
+        cursor.execute("SELECT last_insert_rowid()")
+        watchlist_id = cursor.fetchone()[0]
+    else:
+        watchlist_id = watchlist[0]
+
+    # Fetch the movies in the user's watchlist
     cursor.execute("""
         SELECT MOVIES.title, MOVIES.director, MOVIES.year, MOVIES.length, MOVIES.description 
         FROM WATCHLIST_MOVIE
         JOIN MOVIES ON WATCHLIST_MOVIE.movie_ID = MOVIES.movie_ID
-        WHERE WATCHLIST_MOVIE.watchlist_ID = (
-            SELECT watchlist_ID FROM WATCHLIST WHERE user_ID = ?
-        )
-    """, (user_id,))
+        WHERE WATCHLIST_MOVIE.watchlist_ID = ?
+    """, (watchlist_id,))
     watchlist_movies = cursor.fetchall()
     conn.close()
 
@@ -116,6 +127,34 @@ def add_to_watchlist():
     conn.close()
 
     return render_template('add_to_watchlist.html', movies=movies)
+
+@app.route('/reviews')
+def my_reviews():
+    if 'user_id' not in session:
+        return redirect('/login')  # Redirect to login if not logged in
+
+    user_id = session['user_id']
+
+    conn = sqlite3.connect('box_office.db')
+    cursor = conn.cursor()
+
+    # Fetch reviews created by the user
+    cursor.execute("""
+        SELECT 
+            CASE 
+                WHEN r.reviewType = 'movie' THEN (SELECT title FROM MOVIES WHERE movie_ID = r.movie_ID)
+                WHEN r.reviewType = 'actor' THEN (SELECT firstName || ' ' || lastName FROM ACTORS WHERE actor_ID = r.actor_ID)
+            END AS reviewed_entity,
+            r.reviewType,
+            r.rating,
+            r.reviewDate
+        FROM REVIEW r
+        WHERE r.user_ID = ?
+    """, (user_id,))
+    user_reviews = cursor.fetchall()
+    conn.close()
+
+    return render_template('reviews.html', user_reviews=user_reviews)
 
 
 # Serve the write review page
@@ -183,7 +222,36 @@ def index():
     if 'user_id' not in session:
         return redirect('/login')
         
-    return render_template('index.html')
+    conn = sqlite3.connect('box_office.db')
+    cursor = conn.cursor()
+
+    # Query for top 10 rated movies
+    cursor.execute("""
+        SELECT m.title, ROUND(AVG(r.rating), 1) AS avg_rating
+        FROM MOVIES m
+        JOIN REVIEW r ON m.movie_ID = r.movie_ID
+        WHERE r.reviewType = 'movie'
+        GROUP BY m.movie_ID
+        ORDER BY avg_rating DESC
+        LIMIT 5;
+    """)
+    top_movies = cursor.fetchall()
+
+    # Query for top 5 rated actors
+    cursor.execute("""
+        SELECT a.firstName || ' ' || a.lastName AS actor_name, ROUND(AVG(r.rating), 1) AS avg_rating
+        FROM ACTORS a
+        JOIN REVIEW r ON a.actor_ID = r.actor_ID
+        WHERE r.reviewType = 'actor'
+        GROUP BY a.actor_ID
+        ORDER BY avg_rating DESC
+        LIMIT 5;
+    """)
+    top_actors = cursor.fetchall()
+
+    conn.close()
+
+    return render_template('index.html', top_movies=top_movies, top_actors=top_actors)
 
 if __name__ == '__main__':
     initialize_database()

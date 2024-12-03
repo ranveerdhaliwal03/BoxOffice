@@ -26,13 +26,24 @@
         nav a:hover {
             background-color: #555;
         }
-        button {
-            margin: 10px;
-            padding: 10px;
-            font-size: 16px;
-        }
-        #results {
+        .container {
             margin-top: 20px;
+        }
+        .list-section {
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #333;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        ul li {
+            background-color: #f4f4f4;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -41,37 +52,33 @@
     <nav>
         <a href="/">Home</a>
         <a href="/watchlist">My Watchlist</a>
+        <a href="/reviews">My Reviews</a>
         <a href="/write_review">Write a Review</a>
         <a href="/logout">Logout</a>
     </nav>
 
     <h1>Box Office</h1>
-    <button id="moviesButton">Show Movies</button>
-    <button id="actorsButton">Show Actors</button>
-    <div id="results"></div>
 
-    <script>
-        document.getElementById('moviesButton').addEventListener('click', () => {
-            fetch('/movies')
-                .then(response => response.json())
-                .then(data => {
-                    const results = document.getElementById('results');
-                    results.innerHTML = '<h2>Movies</h2><ul>' +
-                        data.map(movie => `<li>${movie}</li>`).join('') +
-                        '</ul>';
-                });
-        });
+    <div class="container">
+        <!-- Top 10 Movies Section -->
+        <div class="list-section">
+            <h2>Top 5 Movies</h2>
+            <ul>
+                {% for movie, rating in top_movies %}
+                <li><strong>{{ movie }}</strong>: {{ rating }} / 5</li>
+                {% endfor %}
+            </ul>
+        </div>
 
-        document.getElementById('actorsButton').addEventListener('click', () => {
-            fetch('/actors')
-                .then(response => response.json())
-                .then(data => {
-                    const results = document.getElementById('results');
-                    results.innerHTML = '<h2>Actors</h2><ul>' +
-                        data.map(actor => `<li>${actor}</li>`).join('') +
-                        '</ul>';
-                });
-        });
-    </script>
+        <!-- Top 5 Actors Section -->
+        <div class="list-section">
+            <h2>Top 5 Actors</h2>
+            <ul>
+                {% for actor, rating in top_actors %}
+                <li><strong>{{ actor }}</strong>: {{ rating }} / 5</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
 </body>
 </html>
