@@ -26,29 +26,22 @@
         nav a:hover {
             background-color: #555;
         }
-        .container {
-            margin-top: 20px;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
         }
-        .list-section {
-            margin-bottom: 30px;
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
         }
-        h2 {
-            color: #333;
-        }
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        ul li {
-            background-color: #f4f4f4;
-            margin: 5px 0;
-            padding: 10px;
-            border-radius: 4px;
+        th {
+            background-color: #f2f2f2;
         }
     </style>
 </head>
 <body>
-    <!-- Navigation Menu -->
     <nav>
         <a href="/">Home</a>
         <a href="/watchlist">My Watchlist</a>
@@ -59,26 +52,44 @@
 
     <h1>Box Office</h1>
 
-    <div class="container">
-        <!-- Top 10 Movies Section -->
-        <div class="list-section">
-            <h2>Top 5 Movies</h2>
-            <ul>
-                {% for movie, rating in top_movies %}
-                <li><strong>{{ movie }}</strong>: {{ rating }} / 5</li>
-                {% endfor %}
-            </ul>
-        </div>
+    <h2>Top 5 Movies</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Average Rating</th>
+                <th>Cast</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for title, avg_rating, actors in movies_with_actors %}
+            <tr>
+                <td>{{ title }}</td>
+                <td>{{ avg_rating }}</td>
+                <td>{{ actors | join(', ') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
-        <!-- Top 5 Actors Section -->
-        <div class="list-section">
-            <h2>Top 5 Actors</h2>
-            <ul>
-                {% for actor, rating in top_actors %}
-                <li><strong>{{ actor }}</strong>: {{ rating }} / 5</li>
-                {% endfor %}
-            </ul>
-        </div>
-    </div>
+    <h2>Top 5 Actors</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Actor</th>
+                <th>Average Rating</th>
+                <th>Filmography</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for actor_name, avg_rating, movies in actors_with_movies %}
+            <tr>
+                <td>{{ actor_name }}</td>
+                <td>{{ avg_rating }}</td>
+                <td>{{ movies | join(', ') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </body>
 </html>
