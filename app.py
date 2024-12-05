@@ -214,20 +214,19 @@ def write_review():
 
         return redirect('/')
 
-    return render_template('write_review.html')  # GET request will render the form
+    return render_template('write_review.html')  
 
-# Serve the main HTML page
 @app.route('/')
 def index():
     if 'user_id' not in session:
         return redirect('/login')
-        
+
     conn = sqlite3.connect('box_office.db')
     cursor = conn.cursor()
 
-    # Query for top 10 rated movies
+    # Top 5 Movies with associated actors
     cursor.execute("""
-        SELECT m.title, ROUND(AVG(r.rating), 1) AS avg_rating
+        SELECT m.movie_ID, m.title, ROUND(AVG(r.rating), 1) AS avg_rating
         FROM MOVIES m
         JOIN REVIEW r ON m.movie_ID = r.movie_ID
         WHERE r.reviewType = 'movie'
@@ -237,9 +236,20 @@ def index():
     """)
     top_movies = cursor.fetchall()
 
-    # Query for top 5 rated actors
+    movies_with_actors = []
+    for movie_id, title, avg_rating in top_movies:
+        cursor.execute("""
+            SELECT a.firstName || ' ' || a.lastName AS actor_name
+            FROM ACTORS a
+            JOIN MOVIE_ACTOR ma ON a.actor_ID = ma.actor_ID
+            WHERE ma.movie_ID = ?;
+        """, (movie_id,))
+        actors = [row[0] for row in cursor.fetchall()]
+        movies_with_actors.append((title, avg_rating, actors))
+
+    # Top 5 Actors with associated movies
     cursor.execute("""
-        SELECT a.firstName || ' ' || a.lastName AS actor_name, ROUND(AVG(r.rating), 1) AS avg_rating
+        SELECT a.actor_ID, a.firstName || ' ' || a.lastName AS actor_name, ROUND(AVG(r.rating), 1) AS avg_rating
         FROM ACTORS a
         JOIN REVIEW r ON a.actor_ID = r.actor_ID
         WHERE r.reviewType = 'actor'
@@ -249,9 +259,21 @@ def index():
     """)
     top_actors = cursor.fetchall()
 
+    actors_with_movies = []
+    for actor_id, actor_name, avg_rating in top_actors:
+        cursor.execute("""
+            SELECT m.title
+            FROM MOVIES m
+            JOIN MOVIE_ACTOR ma ON m.movie_ID = ma.movie_ID
+            WHERE ma.actor_ID = ?;
+        """, (actor_id,))
+        movies = [row[0] for row in cursor.fetchall()]
+        actors_with_movies.append((actor_name, avg_rating, movies))
+
     conn.close()
 
-    return render_template('index.html', top_movies=top_movies, top_actors=top_actors)
+    return render_template('index.html', movies_with_actors=movies_with_actors, actors_with_movies=actors_with_movies)
+
 
 if __name__ == '__main__':
     initialize_database()

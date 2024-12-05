@@ -125,7 +125,8 @@ def populate_database(cursor, conn):
     ('Morgan', 'Freeman', 'American', '1937-06-01'),
     ('Tim', 'Robbins', 'American', '1958-10-16'),
     ('Russell', 'Crowe', 'Australian', '1964-04-07'),
-    ('Joaquin', 'Phoenix', 'American', '1974-10-28');
+    ('Joaquin', 'Phoenix', 'American', '1974-10-28'),
+    ('Cillian', 'Murphy', 'Irish', '1976-05-25');
     """)
 
     # Insert MOVIE_ACTOR relationships
@@ -135,25 +136,27 @@ def populate_database(cursor, conn):
     (3, 5), (3, 6), (4, 7), (4, 8),
     (5, 9), (5, 10), (6, 11), (6, 12),
     (7, 13), (7, 14), (8, 15), (8, 16),
-    (9, 17), (9, 18), (10, 19), (10, 20);
+    (9, 17), (9, 18), (10, 19), (10, 20),
+    (1, 21), (3, 21); 
     """)
 
     # Insert REVIEWS for users
     cursor.executescript("""
     INSERT INTO REVIEW (user_ID, reviewType, movie_ID, actor_ID, rating, reviewDate) VALUES
-    -- User 1
+
     (2, 'movie', 1, NULL, 5, '2024-12-01'),
     (2, 'actor', NULL, 1, 4, '2024-12-01'),
     (2, 'movie', 2, NULL, 4, '2024-12-01'),
-    -- User 2
+    (2, 'actor',  NULL, 21, 5, '2024-12-01'),
+
     (3, 'movie', 3, NULL, 5, '2024-12-01'),
     (3, 'actor', NULL, 7, 5, '2024-12-01'),
     (3, 'movie', 5, NULL, 4, '2024-12-01'),
-    -- User 3
+
     (4, 'actor', NULL, 14, 5, '2024-12-01'),
     (4, 'movie', 6, NULL, 3, '2024-12-01'),
     (4, 'actor', NULL, 19, 5, '2024-12-01'),
-    -- User 4
+
     (5, 'movie', 9, NULL, 4, '2024-12-01'),
     (5, 'actor', NULL, 20, 5, '2024-12-01'),
     (5, 'movie', 8, NULL, 4, '2024-12-01');
